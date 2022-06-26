@@ -97,7 +97,7 @@ function App() {
     }
 
     App.prototype.hideSearch = function () {
-        zog("hideSearch",p.fridgeCon.searchTextInput.visible)
+        zog("hideSearch", p.fridgeCon.searchTextInput.visible)
         if (p.fridgeCon.searchTextInput.visible == false) {
             return;
         }
@@ -113,7 +113,7 @@ function App() {
             con.visible = true;
         })
         p.win.conWrapper.wrapper2.remove(p.win.conWrapper.wrapper2.items);
-       
+
         p.updateStatus(true);
         stage.update();
     }
@@ -135,7 +135,7 @@ function App() {
         // create Labels to capture the text from the keyboard
         //var text1 = new Label({ text: "", backgroundColor: white }).pos(100, 100);
         var text1 = p.fridgeCon.searchTextInput.textInput;
-        p.fridgeCon.searchTextInput.closeButton.tap(()=>{
+        p.fridgeCon.searchTextInput.closeButton.tap(() => {
             p.hideSearch();
         })
         // create a new Keyboard and pass in the labels as an array
@@ -167,7 +167,7 @@ function App() {
         keyboard.on("keydown", function (e) {
             var items_arr = [];
             loop(p.itemsObj, function (conName, con) {
-                
+
                 if (con.startObj.isTop) {
                     con.visible = true;
                 } else {
@@ -175,7 +175,7 @@ function App() {
                         con.visible = true;
                         items_arr.push(con);
                     } else {
-                       con.visible = false;
+                        con.visible = false;
                     }
                 };
             })
@@ -461,7 +461,7 @@ function App() {
     }
     App.prototype.updateSendObj = function () {
         if (p.playerObj != undefined) {
-           
+
 
             result = p.likeRef.update({ sendObj: p.itemPlaceObj });;
             result.then(function () {
@@ -515,7 +515,7 @@ function App() {
 
     App.prototype.updateStatus = function (go) {
         zog("updateStatus0");
-        if (p.thatMe && go==undefined) return
+        if (p.thatMe && go == undefined) return
         if (p.itemsObj && p.itemPlaceObj) {
             loop(p.itemsObj, function (itemName, magnetCon) {
                 //debugger
@@ -527,12 +527,12 @@ function App() {
                     } else {
                         magnetCon.addTo(magnetCon.startParent);
                         magnetCon.startObj.isTop = false;
-                        zog("magnetCon.startParent",magnetCon.startParent.name,magnetCon.startParent.visible)
+                        zog("magnetCon.startParent", magnetCon.startParent.name, magnetCon.startParent.visible)
                         //magnetCon.loc(p.itemPlaceObj[magnetCon.coundId].x,p.itemPlaceObj[magnetCon.coundId].y);
                         magnetCon.loc(magnetCon.startObj.x, magnetCon.startObj.y);
                     }
                 }
-                
+
             })
         }
         zog("updateStatus")
@@ -1058,22 +1058,24 @@ function App() {
                             magnetCon.loc(magnetCon.startObj.x, magnetCon.startObj.y);
                         }
 
-                         //https://nonsensefridge.com/Notify.php?title=HI&body=guys
-                       
-                            let data = {title: "Fridge was edited since your last visit",body:"Click here to view the fridge"};
+                        //https://nonsensefridge.com/Notify.php?title=HI&body=guys
+
+                        let state_img = new Bitmap(stage, 542.5, 363.5, 94, 165);
+                        uploadCloudinary(state_img, url => {
+                            let data = { title: "Fridge was edited since your last visit", body: "Click here to view the fridge", url };
 
                             fetch("https://nonsensefridge.com/Notify.php", {
                                 method: "POST",
-                                headers: {'Content-Type': 'application/json'}, 
+                                headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(data)
                             }).then(res => {
                                 console.log("Request complete! response:", res);
                             }).catch((error) => {
                                 zogr('Error:', error);
-                              });
-                        
+                            });
 
-                        p.updateSendObj();
+                            p.updateSendObj();
+                        });
                     })
                 } else {
                     if (p.editCon.editMode == "edit") {
@@ -1098,7 +1100,7 @@ function App() {
         });
         wrapper.name = "wrapper";
 
-       
+
 
 
         var wrapper2 = new Wrapper({
