@@ -1,6 +1,5 @@
 function uploadCloudinary(bitmap, callbak) {
     var p = this;
-
     var cloud_name = 'djobjzocx';
     var preset_name = 'nonsensefridge';
     var mainFolder = 'nonsensefridge';

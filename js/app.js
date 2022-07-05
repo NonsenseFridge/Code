@@ -209,7 +209,7 @@ function App() {
         var words = asset("words.json").words;
         p.words = words;
 
-        p.win = p.buildWordList(470, p.fridgeCon.bottomRect.width + 20, p.fridgeCon.bottomRect.height, true);
+        p.win = p.buildWordList(470, p.fridgeCon.bottomRect.width + 70, p.fridgeCon.bottomRect.height, true);
         p.win.loc(p.fridgeCon.bottomRect.x - p.fridgeCon.bottomRect.width / 2, p.fridgeCon.bottomRect.y - p.fridgeCon.bottomRect.height / 2)
 
         timeout(1, function () {
@@ -1060,22 +1060,51 @@ function App() {
 
                         //https://nonsensefridge.com/Notify.php?title=HI&body=guys
 
-                        let state_img = new Bitmap(stage, 542.5, 363.5, 94, 165);
-                        uploadCloudinary(state_img, url => {
-                            let data = { title: "Fridge was edited since your last visit", body: "Click here to view the fridge", url };
+                       // let state_img = new Bitmap(stage, 542.5, 363.5, 94, 165);
+                        
+                        p.updateSendObj();
 
-                            fetch("https://nonsensefridge.com/Notify.php", {
+                        fetch('https://nonsensefridge.com/Notify.php')
+                        .then(response=>response.json())
+                        .then(data=>{ 
+                            zogr("answer from php", data);
+                            if(data==1)
+                            {
+                                let state_img = new Bitmap(stage, 543, 364, 94, 165);
+                                uploadCloudinary(state_img, url => {
+                                    let data = { title: "Fridge was edited since your last visit", body: "Click here to view the fridge", url:url };
+                                    zog(url);
+                                    fetch("https://nonsensefridge.com/Notify.php", {
+                                        method: "POST",
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(data)
+                                    }).then(res => {
+                                        console.log("Request complete! response:", res);
+                                    }).catch((error) => {
+                                        zogr('Error:', error);
+                                    });
+        
+                                    
+                                });
+                            }
+                         }).catch((error) => {
+                            zogr('Error:', error);
+                        });
+                         return
+                        fetch("https://nonsensefridge.com/Notify.php", {
                                 method: "POST",
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(data)
+                                headers: { 'Content-Type': 'application/json' }
                             }).then(res => {
                                 console.log("Request complete! response:", res);
+                                if(res.ok)
+                                {
+                                   
+                                }
                             }).catch((error) => {
                                 zogr('Error:', error);
                             });
 
-                            p.updateSendObj();
-                        });
+                     
                     })
                 } else {
                     if (p.editCon.editMode == "edit") {
@@ -1115,9 +1144,11 @@ function App() {
 
         wrapper.addTo(conWrapper).mov(0, 20);
         wrapper2.addTo(conWrapper).mov(0, 20);
-        var rectForDrag = new Rectangle(conWrapper.width, conWrapper.height + 40, "rgba(0,0,0,0.01)");
+        var rectForDrag = new Rectangle(winWidth, conWrapper.height + 40, "rgba(0,0,0,0.01)");
         rectForDrag.addTo(conWrapper, 0);
         // wrapper.center().mov(0,70);
+
+        
         stage.update();
 
 
@@ -1134,8 +1165,6 @@ function App() {
                 }
             })
         }
-
-
 
         var win = new Window({
             backgroundColor: "rgba(0,0,0,0.01)",
