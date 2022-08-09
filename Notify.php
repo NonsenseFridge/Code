@@ -5,6 +5,7 @@ class Notification
     private $title;
     private $body;
     private $url;
+    public $result;
     
     function __construct($title="", $body="", $url = "")
     {
@@ -24,7 +25,8 @@ class Notification
     {
         if (file_exists("last_sent.json")){
             $json = json_decode(file_get_contents("last_sent.json"));
-            $json->last_sent + (24 * 60 * 60)  < time();
+            return $json->last_sent + (24 * 60 * 60)  < time();
+            //return $json->last_sent + (10*60)  < time();
         } else {
             return true;
         }
@@ -68,7 +70,7 @@ class Notification
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $server_output = curl_exec($ch);
-        echo $server_output;
+        $this->result = $server_output;
 
         curl_close($ch);
     }
@@ -79,14 +81,11 @@ $data = json_decode(file_get_contents('php://input'), true);
 // $notify = (new Notification("בדיקה","תמונה",null))->sendNotification();
 if($data["title"])
 {
-    $notify = (new Notification($data["title"], $data["body"], $data["url"]))->sendNotification();
+    $notify = new Notification($data["title"], $data["body"], $data["url"]);
+    $notify->sendNotification();
+    echo $notify->result;
+
 }else{
-    echo (new Notification())->checkLast();
-    /*$answer = (new Notification())->checkLast();
-    if($answer)
-    {
-        echo "1";
-    }else{
-        echo "0"
-    }*/
+    $answer = (new Notification())->checkLast();
+    echo $answer ? "1" : "0";
 }

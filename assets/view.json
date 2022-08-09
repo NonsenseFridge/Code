@@ -206,6 +206,24 @@
                         "height": 330
                     }
                 },
+                "topRectMask":{
+                    "name": "topRectMask",
+                    "pos": {
+                        "horizontal": "center",
+                        "vertical": "top",
+                        "x": 7,
+                        "y": 170
+                    },
+                    "type": "Rectangle",
+                    "alpha": 1,
+                    "props": {
+                        "borderColor": "#FF0000",
+                        "borderWidth": 1,
+                        "color": "#d6b667",
+                        "width": 540,
+                        "height": 350
+                    }
+                },
                 "bottomRect":{
                     "name": "bottomRect",
                     "pos": {
@@ -340,11 +358,12 @@
                         "horizontal": "center",
                         "vertical": "center"
                     },
+                    "scale":0,
                     "type": "Rectangle",
                     "props": {
-                        "color": "rgba(0,0,0,0.01)",
-                        "width": 720,
-                        "height": 1280
+                        "color": "rgba(0,0,0,0)",
+                        "width": 20,
+                        "height": 80
                     }
                 },
                 "label": {
@@ -355,6 +374,7 @@
                         "x": 200,
                         "y": 130
                     },
+                    "scale":0.01,
                     "type": "Label",
                     "props": {
                         "size": 28,

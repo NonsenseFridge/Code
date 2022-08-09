@@ -23,7 +23,7 @@ function App() {
         p.theWallReady = false;
         p.nowBrick = null;
         p.setNewUser = false;
-
+        p.sendInProgress = false;
         p.thatMe = false;
 
         p.waitTimeSecound = 30;
@@ -46,6 +46,8 @@ function App() {
 
         js.helper.DisplayObjectFromJson.buildView([p.mainAssets.gameView.connectPopup], stage);
 
+       
+
         stage.connectPopup.bgRectRed.animate({ props: { scaleY: 0 }, rewind: true, loop: true })
 
         var progressBar = new ProgressBar({ barType: "rectangle", foregroundColor: "#ffcb31", borderColor: "#ffcb31" });
@@ -61,7 +63,24 @@ function App() {
 
             p.fridgeCon.topMarkView.visible = false;
             p.fridgeCon.topRect.visible = false;
+            p.fridgeCon.topRectMask.visible = false;
             p.fridgeCon.bottomRect.visible = false;
+
+            p.topCon = new Container(stageW,stageH);
+            p.topConRect = new Rectangle(p.fridgeCon.topRect.width,p.fridgeCon.topRect.height, "rgba(0,0,0,0.01)");
+            p.topConRect.centerReg(p.fridgeCon).loc(p.fridgeCon.topRect);
+            p.topConRect.addTo(p.topCon);
+           
+           // p.fridgeCon.topRectMask.addTo(p.topCon);
+            p.topCon.addTo();
+            p.topCon.gesture({
+                /*boundary:new Boundary(-winWidth,-winHeight*2,winWidth*3,winHeight*4),*/
+                localBounds:true,
+                rotate:false,
+                maxScale:3,
+                minScale:0.5,
+            });
+            p.topCon.setMask(p.fridgeCon.topRectMask)
 
             p.fullCon.fullCon.menuButton.expand();
             p.fullCon.fullCon.menuButton.on("mousedown", function () {
@@ -209,8 +228,13 @@ function App() {
         var words = asset("words.json").words;
         p.words = words;
 
+       
         p.win = p.buildWordList(470, p.fridgeCon.bottomRect.width + 70, p.fridgeCon.bottomRect.height, true);
         p.win.loc(p.fridgeCon.bottomRect.x - p.fridgeCon.bottomRect.width / 2, p.fridgeCon.bottomRect.y - p.fridgeCon.bottomRect.height / 2)
+        p.win.rectForDragMask.x = p.win.x;
+        p.win.rectForDragMask.y = p.win.y;
+        p.win.conWrapper.setMask(p.win.rectForDragMask);
+        //p.win.loc(p.fridgeCon.bottomRect.x, p.fridgeCon.bottomRect.y)
 
         timeout(1, function () {
             // p.showEditMode();
@@ -224,7 +248,7 @@ function App() {
         p.timerCon = stage.timerCon;
         p.lockScreenCon.visible = false;
         p.timerCon.visible = false;
-
+        
         if (queryString.isLocal != "true") {
             if (p.sendObj == undefined) {
                 p.sendObj = p.itemPlaceObj;
@@ -233,6 +257,7 @@ function App() {
                 p.itemPlaceObj = p.sendObj;
                 p.updateStatus();
             }
+            
             p.updateSendObj();
         } else {
 
@@ -244,6 +269,8 @@ function App() {
     App.prototype.startActiveTimer = function () {
         if (p.isTimersActive) return
         p.isTimersActive = true;
+        
+        zogb("startActiveTimer");
         p.lock();
         p.timerCon.bgRect.color = green;
         // p.timerCon.visible = true;
@@ -258,13 +285,17 @@ function App() {
             }
             stage.update();
         }, num + 1, true);
+        stage.update();
     }
 
     App.prototype.startunActiveTimer = function () {
         if (p.isTimersActive) return
         p.isTimersActive = true;
+        
+        zogb("startunActiveTimer");
         p.timerCon.bgRect.color = red;
         p.timerCon.visible = true;
+        p.timerCon.top();
         var num = p.waitTimeSecound;
         if (p.isLockFromTimerServer) {
             num = Math.round((p.waitTimeMiliSecound - p.openTime) / 1000);
@@ -282,6 +313,7 @@ function App() {
             }
             stage.update();
         }, num + 1, true);
+        stage.update();
     }
 
     App.prototype.lock = function () {
@@ -521,9 +553,10 @@ function App() {
                 //debugger
                 if (p.itemPlaceObj[magnetCon.coundId]) {
                     if (p.itemPlaceObj[magnetCon.coundId].isTop) {
-                        magnetCon.addTo();
+                        magnetCon.addTo(p.topCon);
                         magnetCon.loc(p.itemPlaceObj[magnetCon.coundId].newX, p.itemPlaceObj[magnetCon.coundId].newY);
                         magnetCon.startObj.isTop = true;
+                        
                     } else {
                         magnetCon.addTo(magnetCon.startParent);
                         magnetCon.startObj.isTop = false;
@@ -534,6 +567,7 @@ function App() {
                 }
 
             })
+            p.topCon.top();
         }
         zog("updateStatus")
         if (p.lockScreenCon) p.lockScreenCon.top();
@@ -1008,8 +1042,17 @@ function App() {
         var colors = ["#F8E9DC", "#F2E6DF", "#D5E5E3", "#EFE7F3", "#DBF2EE", "#E4EEDC", "#DDE8FA"
             , "#F5D4D4", "#FCF6DA", "#E5E6FA", "#F9E5C7"];
 
-
+        
         var colorFun = Pick.series(colors);
+        p.touchesCount = 0;
+        stage.on("stagemousemove", function (e) {
+            if(e.nativeEvent.targetTouches) p.touchesCount = e.nativeEvent.targetTouches.length;
+        });
+
+        stage.on("stagemousedown", function (e) {
+            if(e.nativeEvent.targetTouches) p.touchesCount = e.nativeEvent.targetTouches.length;
+        });
+
         loop(p.words, function (wordObj, i) {
 
             js.helper.DisplayObjectFromJson.buildView(p.mainAssets.magnet, tempCon);
@@ -1032,16 +1075,28 @@ function App() {
             }
             arr.push(magnetCon);
             magnetCon.on("mousedown", function () {
+                zog(p.touchesCount,p.isTimersActive)
+                if(p.touchesCount>1) return;
+                if(p.isTimersActive) return;
+                timeout(0.01,()=>{
+                    magnetCon.top();
+                })
+                magnetCon.top();
+                
                 if (gameMode) {
                     p.startActiveTimer();
                     magnetCon.sca(2);
                     p.hideSearch();
                     magnetCon.addTo(stage);
+                    
+                    
                     if (magnetCon.startObj.isTop != true) {
                         p.fridgeCon.topMarkView.visible = true;
                     }
 
-                    magnetCon.stagemouseupEvent = stage.on("stagemouseup", function () {
+                    magnetCon.stagemouseupEvent = stage.on("stagemouseup", function (e) {
+                        if(e.nativeEvent.targetTouches) p.touchesCount = e.nativeEvent.targetTouches.length;
+                        p.isTimersActive = false;
                         stage.off("stagemouseup", magnetCon.stagemouseupEvent);
                         p.fridgeCon.topMarkView.visible = false;
                         magnetCon.sca(1);
@@ -1050,7 +1105,7 @@ function App() {
                             magnetCon.startObj.newX = magnetCon.x;
                             magnetCon.startObj.newY = magnetCon.y;
                             p.itemPlaceObj[magnetCon.coundId] = magnetCon.startObj;
-
+                            magnetCon.addTo(p.topCon);
                         } else {
                             magnetCon.startObj.isTop = false;
                             magnetCon.addTo(magnetCon.startParent);
@@ -1068,10 +1123,19 @@ function App() {
                         .then(response=>response.json())
                         .then(data=>{ 
                             zogr("answer from php", data);
-                            if(data==1)
+                            if(data==1 && !p.sendInProgress)
                             {
+                                
+                                p.sendInProgress = true;
                                 let state_img = new Bitmap(stage, 543, 364, 94, 165);
+                                let con_img = new Container(); 
+                                state_img.sca(0.5);
+                                state_img.addTo(con_img);
+                                state_img = new Bitmap(con_img);
+                                zogg("start upload to Cloudinary");
                                 uploadCloudinary(state_img, url => {
+                                    zogg("finish upload to Cloudinary");
+                                    p.sendInProgress = false;
                                     let data = { title: "Fridge was edited since your last visit", body: "Click here to view the fridge", url:url };
                                     zog(url);
                                     fetch("https://nonsensefridge.com/Notify.php", {
@@ -1106,6 +1170,7 @@ function App() {
 
                      
                     })
+                    magnetCon.top();
                 } else {
                     if (p.editCon.editMode == "edit") {
                         p.addWordToJson(false, magnetCon.label.text);
@@ -1129,9 +1194,6 @@ function App() {
         });
         wrapper.name = "wrapper";
 
-
-
-
         var wrapper2 = new Wrapper({
             items: [],
             width: wrapperWidth,
@@ -1147,8 +1209,8 @@ function App() {
         var rectForDrag = new Rectangle(winWidth, conWrapper.height + 40, "rgba(0,0,0,0.01)");
         rectForDrag.addTo(conWrapper, 0);
         // wrapper.center().mov(0,70);
-
-        
+        //conWrapper.visible = false;
+       
         stage.update();
 
 
@@ -1166,6 +1228,9 @@ function App() {
             })
         }
 
+        var win = new Container(winWidth,winHeight);
+        if(false)
+        {
         var win = new Window({
             backgroundColor: "rgba(0,0,0,0.01)",
             width: winWidth,
@@ -1174,10 +1239,28 @@ function App() {
             padding: 0,
             slideDamp: .2
         });
+       
+        win.add(conWrapper);
+        }else{
+            conWrapper.addTo(win);
+
+            var rectForDragMask = new Rectangle(winWidth,winHeight, "rgba(256,0,0,0.01)");
+            win.rectForDragMask = rectForDragMask;
+            rectForDragMask.addTo();
+            
+        }
         conWrapper.wrapper = wrapper;
         conWrapper.wrapper2 = wrapper2;
         win.conWrapper = conWrapper;
-        win.add(conWrapper);
+
+        //conWrapper.drag({all:true});
+        conWrapper.gesture({
+            /*boundary:new Boundary(-winWidth,-winHeight*2,winWidth*3,winHeight*4),*/
+            localBounds:true,
+            rotate:false,
+            maxScale:3,
+            minScale:0.5,
+        });
 
         return win;
 
